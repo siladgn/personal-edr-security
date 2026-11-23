@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kişisel EDR Kontrol Paneli</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-color: #161f30;
+            --text-color: #f3f4f6;
+            --accent-color: #10b981;
+            --border-color: #1f2937;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            width: 320px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .status-badge {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-color);
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .section-title {
+            font-size: 13px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .list-container {
+            background-color: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 4px;
+        }
+        .btn-delete:hover {
+            text-decoration: underline;
+        }
+        .empty-text {
+            color: #6b7280;
+            font-size: 12px;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .footer {
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>
+        Kişisel EDR 
+        <span class="status-badge" id="api-status">Aktif</span>
+    </h2>
+    
+    <div class="section-title">İzin Verilen Siteler</div>
+    <div class="list-container">
+        <div id="whitelist-items"></div>
+    </div>
+
+    <div class="footer">
+        Kişisel EDR Oltalama Kalkanı v1.0
+    </div>
+
+    <script>
+        // Load whitelist on opening
+        async function loadWhitelist() {
+            const container = document.getElementById('whitelist-items');
+            container.innerHTML = '';
+            
+            const whitelistData = await chrome.storage.local.get(["whitelistedDomains"]);
+            const whitelisted = whitelistData.whitelistedDomains || [];
+
+            if (whitelisted.length === 0) {
+                container.innerHTML = '<div class="empty-text">İstisna eklenmiş site bulunmuyor.</div>';
+                return;
+            }
+
+            whitelisted.forEach(domain => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = domain;
+                nameSpan.style.wordBreak = 'break-all';
+                nameSpan.style.marginRight = '8px';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete';
+                deleteBtn.textContent = 'Kaldır';
+                deleteBtn.addEventListener('click', () => removeDomain(domain));
+
+                item.appendChild(nameSpan);
+                item.appendChild(deleteBtn);
+                container.appendChild(item);
+            });
+        }
+
+        // Remove domain from whitelist
+        async function removeDomain(domain) {
+            const whitelistData = await chrome.storage.local.get(["whitelistedDomains"]);
+            let whitelisted = whitelistData.whitelistedDomains || [];
+            whitelisted = whitelisted.filter(d => d !== domain);
+            await chrome.storage.local.set({ whitelistedDomains: whitelisted });
+            loadWhitelist();
+        }
+
+        // Check backend server status
+        async function checkStatus() {
+            const badge = document.getElementById('api-status');
+            try {
+                const res = await fetch("http://localhost:5000/status");
+                if (res.ok) {
+                    badge.textContent = "Aktif";
+                    badge.style.color = "#10b981";
+                    badge.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+                    badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+                } else {
+                    throw new Error("Offline");
+                }
+            } catch (e) {
+                badge.textContent = "Bağlantı Yok";
+                badge.style.color = "#ef4444";
+                badge.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+                badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
+            }
+        }
+
+        // Run
+        loadWhitelist();
+        checkStatus();
+    </script>
+</body>
+</html>

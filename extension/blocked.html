@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Erişim Engellendi - Kişisel EDR</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-color: #161f30;
+            --text-color: #f3f4f6;
+            --accent-color: #ef4444;
+            --accent-hover: #dc2626;
+            --border-color: #ef444433;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            background-color: var(--panel-color);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .warning-icon {
+            font-size: 64px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        p {
+            color: #9ca3af;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+        .url-box {
+            background-color: #0d131f;
+            border: 1px solid #1f2937;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            word-break: break-all;
+            color: #ef4444;
+        }
+        .score-badge {
+            display: inline-block;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+        .btn-secondary {
+            background-color: #374151;
+            color: var(--text-color);
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="warning-icon">⚠️</div>
+        <h1>Bağlantı Engellendi!</h1>
+        <p>Kişisel EDR Makine Öğrenimi Oltalama Kalkanı, gitmeye çalıştığınız aşağıdaki adresi yüksek riskli (phishing) olarak sınıflandırdı ve erişimi engelledi.</p>
+        
+        <div class="url-box" id="target-url">Yükleniyor...</div>
+        <div class="score-badge" id="risk-score">Risk Skoru: Hesaplanan...</div>
+        
+        <div class="buttons">
+            <button class="btn btn-primary" id="btn-back">Geri Dön (Güvenli)</button>
+            <button class="btn btn-secondary" id="btn-ignore">Yine de Devam Et (Riskli)</button>
+        </div>
+    </div>
+
+    <script>
+        // Extract URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUrl = urlParams.get('url') || 'Bilinmeyen URL';
+        const rawScore = urlParams.get('score') || '0.0';
+        const scorePercentage = (parseFloat(rawScore) * 100).toFixed(1) + '%';
+        
+        document.getElementById('target-url').textContent = targetUrl;
+        document.getElementById('risk-score').textContent = `Risk Skoru: ${scorePercentage}`;
+
+        // Go Back button handler
+        document.getElementById('btn-back').addEventListener('click', () => {
+            window.history.go(-2); // Navigate out of the blocked page loop
+        });
+
+        // Continue anyway button (whitelists domain for the session)
+        document.getElementById('btn-ignore').addEventListener('click', async () => {
+            try {
+                const parsed = new URL(targetUrl);
+                const hostname = parsed.hostname;
+                
+                const whitelistData = await chrome.storage.local.get(["whitelistedDomains"]);
+                const whitelisted = whitelistData.whitelistedDomains || [];
+                
+                if (!whitelisted.includes(hostname)) {
+                    whitelisted.push(hostname);
+                    await chrome.storage.local.set({ whitelistedDomains: whitelisted });
+                }
+                // Redirect user to the page
+                window.location.href = targetUrl;
+            } catch (e) {
+                console.error("Error setting whitelist:", e);
+                window.location.href = targetUrl;
+            }
+        });
+    </script>
+</body>
+</html>

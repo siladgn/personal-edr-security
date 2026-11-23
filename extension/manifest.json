@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Personal EDR - Oltalama Kalkanı",
+  "version": "1.0",
+  "description": "Makine Öğrenimi tabanlı gerçek zamanlı oltalama (phishing) tespit ve engelleme sistemi.",
+  "permissions": [
+    "webNavigation",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

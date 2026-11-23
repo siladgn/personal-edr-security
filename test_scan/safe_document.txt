@@ -1,0 +1,1 @@
+Bu güvenli bir dosyadır. Kontrol panelinin virüs tarama fonksiyonunu test etmek için oluşturulmuştur. Herhangi bir zararlı kod veya imza içermez.

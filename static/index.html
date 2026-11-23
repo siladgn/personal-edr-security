@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kişisel EDR Kontrol Paneli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #161f30;
+            --border-color: #233554;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* Top Header Bar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent-green);
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .api-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-green);
+            transition: all 0.3s ease;
+        }
+
+        .api-badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--accent-red);
+        }
+
+        .api-badge .dot {
+            width: 8px;
+            height: 8px;
+            background-color: currentColor;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        /* System Status Hero Card */
+        .status-hero {
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(22, 31, 48, 0.6));
+            border-color: rgba(16, 185, 129, 0.3);
+            transition: all 0.5s ease;
+        }
+
+        .status-hero.risk {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(22, 31, 48, 0.6));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .status-hero.offline {
+            background: linear-gradient(135deg, rgba(156, 163, 175, 0.1), rgba(22, 31, 48, 0.6));
+            border-color: rgba(156, 163, 175, 0.2);
+        }
+
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px dashed var(--accent-green);
+            color: var(--accent-green);
+            transition: all 0.5s ease;
+        }
+
+        .status-hero.risk .status-icon {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .status-hero.offline .status-icon {
+            background: rgba(156, 163, 175, 0.05);
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .status-icon svg {
+            width: 42px;
+            height: 42px;
+            fill: currentColor;
+        }
+
+        .status-details h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            transition: all 0.5s ease;
+        }
+
+        .status-details p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Modules Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 15px;
+        }
+
+        .module-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .module-card.active {
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.05);
+        }
+
+        .module-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .module-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .module-card.active .module-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .module-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .module-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .module-text p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Modern Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-green);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--accent-green);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-val h4 {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .stat-val .number {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .stat-badge {
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-card.threats .stat-badge {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .stat-card.scanned .stat-badge {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .stat-badge svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* Malware Scanner Box */
+        .scanner-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .scanner-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-blue);
+        }
+
+        .scanner-header svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .scanner-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .scanner-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: #080c14;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-scan {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-scan:hover {
+            background: #2563eb;
+        }
+
+        .btn-scan:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+        }
+
+        /* Progress Bar */
+        .scan-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1f2937;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            width: 30%;
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 3px;
+            position: absolute;
+            animation: loadingScan 1.5s infinite ease-in-out;
+        }
+
+        @keyframes loadingScan {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        .scan-progress p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Scan Results Output */
+        .scan-results {
+            background: #080c14;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+
+        .results-summary {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .summary-safe { color: var(--accent-green); }
+        .summary-danger { color: var(--accent-red); }
+
+        .threat-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .threat-item:last-child {
+            border-bottom: none;
+        }
+
+        .threat-title {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .threat-path {
+            font-size: 11px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        .threat-reason {
+            font-size: 12px;
+            color: #f59e0b;
+        }
+
+        .threat-hash {
+            font-size: 10px;
+            color: #6b7280;
+            font-family: monospace;
+        }
+
+        /* Console Log Box */
+        .console-box {
+            background: #080c14;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 250px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .console-header {
+            padding: 12px 20px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            border-top-left-radius: 11px;
+            border-top-right-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .console-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .console-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .console-dots .dot-r { background-color: var(--accent-red); }
+        .console-dots .dot-y { background-color: #f59e0b; }
+        .console-dots .dot-g { background-color: var(--accent-green); }
+
+        .console-title {
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .console-output {
+            flex: 1;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-entry {
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .log-time { color: #556c94; }
+        .log-module { color: var(--accent-blue); font-weight: 700; }
+        
+        .log-entry.info .log-message { color: var(--accent-green); }
+        .log-entry.warning .log-message { color: #f59e0b; }
+        .log-entry.error .log-message { color: var(--accent-red); }
+        .log-entry.system .log-message { color: var(--text-main); }
+
+        .empty-logs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #4b5563;
+            font-family: monospace;
+        }
+
+        /* Quick Notification SnackBar */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-red);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                <h1>KİŞİSEL EDR</h1>
+            </div>
+            <div class="api-badge" id="api-badge">
+                <span class="dot"></span>
+                <span class="badge-text">API BAĞLI</span>
+            </div>
+        </header>
+
+        <!-- Status Hero -->
+        <div class="status-hero" id="status-hero">
+            <div class="status-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <div class="status-details">
+                <h2 id="status-title">SİSTEM GÜVENDE</h2>
+                <p id="status-desc">Tüm aktif EDR kalkanları koruma sağlıyor. Tehdit algılanmadı.</p>
+            </div>
+        </div>
+
+        <!-- Modules Grid -->
+        <div class="modules-grid">
+            <!-- Cookie Shield -->
+            <div class="module-card" id="card-cookie_shield">
+                <div class="module-info">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 1.68 0 2.5-.7 1-.8 1-1.3 0-1 1-1 1.2 0 1.8-.8C21.72 17 22 14.52 22 13c0-6.08-4.48-11-10-11zm-3.5 11c-.83 0-1.5-.67-1.5-1.5S7.67 10 8.5 10s1.5.67 1.5 1.5S9.33 13 8.5 13zm3-4c-.83 0-1.5-.67-1.5-1.5S10.67 6 11.5 6s1.5.67 1.5 1.5S12.33 9 11.5 9zm4.5 4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    </div>
+                    <div class="module-text">
+                        <h3>Çerez Kalkanı</h3>
+                        <p>Chrome yetkisiz erişim koruması</p>
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-cookie_shield" onchange="toggleModule('cookie_shield')">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- DNS Sinkhole -->
+            <div class="module-card" id="card-sinkhole">
+                <div class="module-info">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2zm-2-7H7v2h10V6zm2 14H5v-2h14v2z"/></svg>
+                    </div>
+                    <div class="module-text">
+                        <h3>DNS Sinkhole</h3>
+                        <p>Zararlı IP/Domain yönlendirmesi</p>
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-sinkhole" onchange="toggleModule('sinkhole')">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- ML Phishing Detector -->
+            <div class="module-card" id="card-phishing_detector">
+                <div class="module-info">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10 1.3 0 2.4-.84 2.82-2H12v-2h6.82c.07-.32.18-.65.18-1h-7v-2h7c0-.35-.11-.68-.18-1H12V9h6.82c-.42-1.16-1.52-2-2.82-2H12V5h3.18C14.4 3.84 13.3 3 12 3c-1.3 0-2.4.84-2.82 2H12v2H7v2h5v2H7v2h5v2H9v2h3v2.82C7.52 21.6 3.84 17.52 3 12c.84-5.52 4.52-9.6 9-9.82V2z"/></svg>
+                    </div>
+                    <div class="module-text">
+                        <h3>ML Oltalama Kalkanı</h3>
+                        <p>URL yapay zeka analiz koruması</p>
+                    </div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-phishing_detector" onchange="toggleModule('phishing_detector')">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card threats">
+                <div class="stat-val">
+                    <h4>ENGELLENEN TEHDİTLER</h4>
+                    <span class="number" id="stat-blocked">0</span>
+                </div>
+                <div class="stat-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 15l-4-4 1.41-1.41L10 13.17l5.59-5.59L17 9l-7 7z"/></svg>
+                </div>
+            </div>
+            <div class="stat-card scanned">
+                <div class="stat-val">
+                    <h4>TARANAN URL ADRESLERİ</h4>
+                    <span class="number" id="stat-scanned">0</span>
+                </div>
+                <div class="stat-badge">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Malware Scanner Box -->
+        <div class="scanner-box">
+            <div class="scanner-header">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10 5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+                <h3>Zararlı Yazılım Tarayıcı (Malware Scanner)</h3>
+            </div>
+            <div class="scanner-body">
+                <div class="input-group">
+                    <input type="text" id="scan-path" placeholder="Taranacak klasör veya dosya yolu..." value="C:\Users\sıla\Documents\antigravity\keen-newton\test_scan">
+                    <button class="btn-scan" id="btn-scan" onclick="startScan()">Taramayı Başlat</button>
+                </div>
+                <div class="scan-progress" id="scan-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <p>Dosyalar analiz ediliyor, lütfen bekleyin...</p>
+                </div>
+                <div class="scan-results" id="scan-results" style="display: none;">
+                    <!-- Results dynamically filled -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Console Log Box -->
+        <div class="console-box">
+            <div class="console-header">
+                <div class="console-dots">
+                    <span class="dot dot-r"></span>
+                    <span class="dot dot-y"></span>
+                    <span class="dot dot-g"></span>
+                </div>
+                <span class="console-title">CANLI TEHDİT AKIŞI (LIVE THREAT LOGS)</span>
+                <span style="font-family: monospace; font-size: 10px; color: var(--text-muted);">v1.0</span>
+            </div>
+            <div class="console-output" id="console-output">
+                <div class="empty-logs">Bekleyen log bulunmuyor...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast-message">Hata mesajı</div>
+
+    <script>
+        const API_URL = "http://localhost:5000";
+        let isOnline = false;
+        let localState = {
+            modules: { cookie_shield: true, sinkhole: true, phishing_detector: true },
+            stats: { blocked_threats: 0, checked_urls: 0 },
+            logs: []
+        };
+
+        // Cache DOM elements
+        const badge = document.getElementById('api-badge');
+        const badgeText = badge.querySelector('.badge-text');
+        const statusHero = document.getElementById('status-hero');
+        const statusTitle = document.getElementById('status-title');
+        const statusDesc = document.getElementById('status-desc');
+        const statBlocked = document.getElementById('stat-blocked');
+        const statScanned = document.getElementById('stat-scanned');
+        const consoleOutput = document.getElementById('console-output');
+        const toast = document.getElementById('toast-message');
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/status`, { signal: AbortSignal.timeout(1500) });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    const hasNewLogs = localState.logs.length !== data.logs.length;
+                    
+                    localState = data;
+                    isOnline = true;
+                    
+                    updateUI(hasNewLogs);
+                } else {
+                    handleOffline();
+                }
+            } catch (e) {
+                handleOffline();
+            }
+        }
+
+        function handleOffline() {
+            isOnline = false;
+            badge.classList.add('offline');
+            badgeText.textContent = "BAĞLANTI YOK";
+            
+            statusHero.className = "status-hero offline";
+            statusTitle.textContent = "EDR BAĞLANTISI KESİLDİ";
+            statusDesc.textContent = "Python arka plan servisi aktif değil. Güvenlik servisleri çevrimdışı.";
+            
+            document.querySelectorAll('.switch input').forEach(input => input.disabled = true);
+            document.getElementById('btn-scan').disabled = true;
+        }
+
+        function updateUI(shouldScroll) {
+            badge.classList.remove('offline');
+            badgeText.textContent = "API BAĞLI";
+
+            for (const [module, enabled] of Object.entries(localState.modules)) {
+                const input = document.getElementById(`toggle-${module}`);
+                const card = document.getElementById(`card-${module}`);
+                if (input) {
+                    input.checked = enabled;
+                    input.disabled = false;
+                }
+                if (card) {
+                    if (enabled) card.classList.add('active');
+                    else card.classList.remove('active');
+                }
+            }
+            document.getElementById('btn-scan').disabled = false;
+
+            const anyModuleDisabled = Object.values(localState.modules).some(val => val === false);
+            if (anyModuleDisabled) {
+                statusHero.className = "status-hero risk";
+                statusTitle.textContent = "SİSTEM RİSK ALTINDA";
+                statusDesc.textContent = "Bazı koruma kalkanları devre dışı bırakıldı. Bilgisayarınız savunmasız olabilir.";
+            } else {
+                statusHero.className = "status-hero";
+                statusTitle.textContent = "SİSTEM GÜVENDE";
+                statusDesc.textContent = "Tüm aktif EDR kalkanları koruma sağlıyor. Tehdit algılanmadı.";
+            }
+
+            statBlocked.textContent = localState.stats.blocked_threats;
+            statScanned.textContent = localState.stats.checked_urls;
+
+            if (localState.logs.length === 0) {
+                consoleOutput.innerHTML = '<div class="empty-logs">Konsol temiz. Bekleyen log bulunmuyor...</div>';
+            } else {
+                let html = '';
+                localState.logs.forEach(log => {
+                    let levelClass = 'info';
+                    if (log.level === 'warning') levelClass = 'warning';
+                    else if (log.level === 'error') levelClass = 'error';
+                    else if (log.module === 'Sistem' || log.module === 'Kontrol Paneli') levelClass = 'system';
+
+                    html += `
+                        <div class="log-entry ${levelClass}">
+                            <span class="log-time">[${log.timestamp}]</span>
+                            <span class="log-module">[${log.module}]</span>
+                            <span class="log-message">${log.message}</span>
+                        </div>
+                    `;
+                });
+                consoleOutput.innerHTML = html;
+                if (shouldScroll) {
+                    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                }
+            }
+        }
+
+        async function toggleModule(moduleKey) {
+            if (!isOnline) return;
+            
+            const input = document.getElementById(`toggle-${moduleKey}`);
+            const originalValue = !input.checked;
+            const targetValue = input.checked;
+
+            try {
+                const response = await fetch(`${API_URL}/api/modules/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ module: moduleKey, enabled: targetValue })
+                });
+
+                if (!response.ok) {
+                    input.checked = originalValue;
+                    showToast("Modül durumu güncellenemedi. Sunucu hatası.");
+                }
+            } catch (e) {
+                input.checked = originalValue;
+                showToast("Bağlantı hatası: Sunucuya ulaşılamadı.");
+            }
+        }
+
+        async function startScan() {
+            if (!isOnline) return;
+            
+            const pathInput = document.getElementById('scan-path');
+            const path = pathInput.value.trim();
+            if (!path) {
+                showToast("Lütfen taranacak bir klasör veya dosya yolu girin.");
+                return;
+            }
+
+            const btnScan = document.getElementById('btn-scan');
+            const progress = document.getElementById('scan-progress');
+            const results = document.getElementById('scan-results');
+
+            btnScan.disabled = true;
+            progress.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/api/scan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+
+                const data = await response.json();
+                
+                progress.style.display = 'none';
+                btnScan.disabled = false;
+                results.style.display = 'block';
+
+                if (response.ok) {
+                    let html = '';
+                    const hasThreats = data.threats_count > 0;
+                    
+                    html += `
+                        <div class="results-summary">
+                            <span>Taranan Dosya: ${data.scanned_count}</span>
+                            <span class="${hasThreats ? 'summary-danger' : 'summary-safe'}">
+                                ${hasThreats ? `${data.threats_count} Tehdit Bulundu!` : 'Temiz (Tehdit Algılanmadı)'}
+                            </span>
+                        </div>
+                    `;
+
+                    if (hasThreats) {
+                        data.threats.forEach(threat => {
+                            html += `
+                                <div class="threat-item">
+                                    <div class="threat-title">⚠️ Zararlı Yazılım Deseni: ${threat.file_name}</div>
+                                    <div class="threat-path">Yol: ${threat.file_path}</div>
+                                    <div class="threat-reason">Nedeni: ${threat.reasons.join(', ')}</div>
+                                    <div class="threat-hash">SHA-256: ${threat.hash}</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `<div style="text-align: center; color: var(--text-muted); padding: 10px 0;">Klasör temiz görünüyor. İmza eşleşmesi bulunamadı.</div>`;
+                    }
+                    
+                    results.innerHTML = html;
+                    fetchStatus();
+                } else {
+                    results.innerHTML = `<div style="color: var(--accent-red); text-align: center;">Hata: ${data.error || 'Tarama başarısız oldu.'}</div>`;
+                }
+            } catch (e) {
+                progress.style.display = 'none';
+                btnScan.disabled = false;
+                results.style.display = 'block';
+                results.innerHTML = `<div style="color: var(--accent-red); text-align: center;">Bağlantı hatası: Sunucuya ulaşılamadı.</div>`;
+            }
+        }
+
+        // Run
+        fetchStatus();
+        setInterval(fetchStatus, 1500);
+    </script>
+</body>
+</html>
